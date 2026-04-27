@@ -1,0 +1,14 @@
+# Change the Argo CD server service to NodePort to allow external access
+apiVersion: v1
+kind: Service
+metadata:
+  name: argocd-server
+spec:
+  type: NodePort
+  ports:
+    - name: http
+      port: 80
+      protocol: TCP
+      targetPort: 8080
+      nodePort: 30100
+

@@ -51,6 +51,8 @@ Each tool has its own subdirectory with an `init.sh` script.
 | 30107 | OpenTelemetry Collector (HTTP) |
 | 30108 | Qdrant (HTTP)                  |
 | 30109 | Qdrant (gRPC)                  |
+| 30110 | Gitea                          |
+| 30111 | Argo Workflows                 |
 
 ## Versioning
 

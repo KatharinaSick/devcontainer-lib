@@ -14,6 +14,11 @@ server:
       cpu: 200m
 
 controller:
+  extraEnv:
+    - name: OTEL_EXPORTER_OTLP_ENDPOINT
+      value: "http://otel-collector.otel-collector.svc.cluster.local:4317"
+    - name: OTEL_SERVICE_NAME
+      value: "argo-workflows"
   resources:
     requests:
       memory: 64Mi

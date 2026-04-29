@@ -54,4 +54,7 @@ helm install argo-events argo/argo-events \
   --wait \
   --timeout 5m
 
+echo "✨ Installing default EventBus (NATS)"
+kubectl apply -f "$SCRIPT_DIR/manifests/eventbus.yaml"
+
 echo "✅ Argo Events is ready"

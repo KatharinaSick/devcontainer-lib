@@ -59,8 +59,6 @@ echo "✨ Installing Argo CD"
 kubectl create namespace argocd
 kubectl apply --server-side -f "https://raw.githubusercontent.com/argoproj/argo-cd/${version}/manifests/install.yaml"
 kubectl apply -n argocd -f "$SCRIPT_DIR/manifests/overlays/"
-kubectl patch deployment argocd-server -n argocd --type=json \
-  -p '[{"op":"add","path":"/spec/template/spec/containers/0/args/-","value":"--insecure"}]'
 
 echo "✨ Installing Argo CD CLI"
 # shellcheck disable=SC1091
@@ -71,6 +69,8 @@ rm "argocd-linux-${ARCH}"
 
 echo "✨ Waiting for Argo CD server to be ready"
 kubectl rollout status deployment/argocd-server -n argocd --timeout="$timeout"
+kubectl patch deployment argocd-server -n argocd --type=json \
+  -p '[{"op":"add","path":"/spec/template/spec/containers/0/args/-","value":"--insecure"}]'
 sleep 3 # Give Argo CD a moment to be ready after restart
 
 

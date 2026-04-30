@@ -2,9 +2,8 @@ server:
   # Use server auth mode for easy access in devcontainer environments
   extraArgs:
     - --auth-mode=server
-  service:
-    type: NodePort
-    nodePort: 30111
+  serviceType: NodePort
+  serviceNodePort: 30111
   resources:
     requests:
       memory: 64Mi

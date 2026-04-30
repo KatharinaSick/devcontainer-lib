@@ -76,19 +76,20 @@ echo "✨ Waiting for Argo CD server to be ready"
 kubectl rollout status deployment/argocd-server -n argocd --timeout="$timeout"
 sleep 3 # Give Argo CD a moment to be ready after restart
 
+echo "✨ Setting password for user admin"
+initial_admin_password=$(kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath="{.data.password}" | base64 -d)
+kubectl -n argocd delete secret argocd-initial-admin-secret
+argocd login localhost:30100 --username admin --password "$initial_admin_password" --plaintext
 
 if [ "$read_only" = true ]; then
   echo "✨ Setting password for user readonly"
-  admin_password=$(kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath="{.data.password}" | base64 -d)
-  argocd login localhost:30100 --username admin --password "$admin_password" --plaintext
   argocd account update-password \
     --account readonly \
-    --current-password "$admin_password" \
+    --current-password "$initial_admin_password" \
     --new-password a-super-secure-password
 
   echo "✨ Disabling admin user for read-only mode"
   kubectl -n argocd patch configmap argocd-cm --type merge -p '{"data":{"accounts.admin.enabled":"false"}}'
-  kubectl -n argocd delete secret argocd-initial-admin-secret
 
   echo "✨ Restarting Argo CD server"
   kubectl -n argocd rollout restart deployment/argocd-server
@@ -97,6 +98,12 @@ if [ "$read_only" = true ]; then
 
   echo "✨ Logging in as readonly user"
   argocd login localhost:30100 --username readonly --password a-super-secure-password --plaintext
+else
+  argocd account update-password \
+      --account admin \
+      --current-password "$initial_admin_password" \
+      --new-password a-super-secure-password
+  argocd login localhost:30100 --username admin --password a-super-secure-password --plaintext
 fi
 
 echo "✅ Argo CD is ready"

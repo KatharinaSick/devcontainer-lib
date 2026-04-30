@@ -57,13 +57,10 @@ fi
 
 echo "✨ Installing Argo CD"
 kubectl create namespace argocd
-
-manifests_tmp="$(mktemp -d)"
-trap 'rm -rf "${manifests_tmp}"' EXIT
-cp -r "$SCRIPT_DIR/manifests/." "${manifests_tmp}/"
-sed -i "s|argoproj/argo-cd/[^/]*/manifests/install.yaml|argoproj/argo-cd/${version}/manifests/install.yaml|" \
-  "${manifests_tmp}/kustomization.yaml"
-kubectl apply -k "${manifests_tmp}"
+kubectl apply --server-side -f "https://raw.githubusercontent.com/argoproj/argo-cd/${version}/manifests/install.yaml"
+kubectl apply -n argocd -f "$SCRIPT_DIR/manifests/overlays/"
+kubectl patch deployment argocd-server -n argocd --type=json \
+  -p '[{"op":"add","path":"/spec/template/spec/containers/0/args/-","value":"--insecure"}]'
 
 echo "✨ Installing Argo CD CLI"
 # shellcheck disable=SC1091

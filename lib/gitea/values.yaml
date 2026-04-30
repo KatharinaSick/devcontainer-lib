@@ -3,6 +3,9 @@ gitea:
     username: gitea
     password: gitea
     email: gitea@local
+  config:
+    database:
+      DB_TYPE: sqlite3
 
 service:
   http:

@@ -63,7 +63,7 @@ trap 'rm -rf "${manifests_tmp}"' EXIT
 cp -r "$SCRIPT_DIR/manifests/." "${manifests_tmp}/"
 sed -i "s|argoproj/argo-cd/[^/]*/manifests/install.yaml|argoproj/argo-cd/${version}/manifests/install.yaml|" \
   "${manifests_tmp}/kustomization.yaml"
-kubectl apply -k "${manifests_tmp}" --server-side
+kubectl apply -k "${manifests_tmp}" --server-side -n argocd
 
 echo "✨ Installing Argo CD CLI"
 # shellcheck disable=SC1091

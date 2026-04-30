@@ -39,20 +39,21 @@ Each tool has its own subdirectory with an `init.sh` script.
 
 ## Ports
 
-| Port  | Service                        |
-|-------|--------------------------------|
-| 30100 | ArgoCD                         |
-| 30101 | Argo Rollouts                  |
-| 30102 | Prometheus                     |
-| 30103 | Jaeger                         |
-| 30104 | GCP API Mock                   |
-| 30105 | Ollama                         |
-| 30106 | OpenTelemetry Collector (gRPC) |
-| 30107 | OpenTelemetry Collector (HTTP) |
-| 30108 | Qdrant (HTTP)                  |
-| 30109 | Qdrant (gRPC)                  |
-| 30110 | Gitea                          |
-| 30111 | Argo Workflows                 |
+| Port        | Service                        |
+|-------------|--------------------------------|
+| 30100       | ArgoCD                         |
+| 30101       | Argo Rollouts                  |
+| 30102       | Prometheus                     |
+| 30103       | Jaeger                         |
+| 30104       | GCP API Mock                   |
+| 30105       | Ollama                         |
+| 30106       | OpenTelemetry Collector (gRPC) |
+| 30107       | OpenTelemetry Collector (HTTP) |
+| 30108       | Qdrant (HTTP)                  |
+| 30109       | Qdrant (gRPC)                  |
+| 30110       | Gitea                          |
+| 30111       | Argo Workflows                 |
+| 30200–30204 | Custom app (reserved)          |
 
 ## Versioning
 

@@ -47,3 +47,19 @@ nodes:
   - hostPort: 30111
     containerPort: 30111
     protocol: TCP
+    # Custom app placeholders (30200-30204)
+  - hostPort: 30200
+    containerPort: 30200
+    protocol: TCP
+  - hostPort: 30201
+    containerPort: 30201
+    protocol: TCP
+  - hostPort: 30202
+    containerPort: 30202
+    protocol: TCP
+  - hostPort: 30203
+    containerPort: 30203
+    protocol: TCP
+  - hostPort: 30204
+    containerPort: 30204
+    protocol: TCP

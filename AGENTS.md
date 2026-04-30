@@ -102,20 +102,21 @@ and configure NodePort if needed. Default to lightweight settings (no persistenc
 
 ## Port Assignments
 
-| Port  | Service                        |
-|-------|--------------------------------|
-| 30100 | ArgoCD                         |
-| 30101 | Argo Rollouts (port-forward)   |
-| 30102 | Prometheus                     |
-| 30103 | Jaeger                         |
-| 30104 | GCP API Mock (outside cluster) |
-| 30105 | Ollama                         |
-| 30106 | OpenTelemetry Collector (gRPC) |
-| 30107 | OpenTelemetry Collector (HTTP) |
-| 30108 | Qdrant (HTTP)                  |
-| 30109 | Qdrant (gRPC)                  |
-| 30110 | Gitea                          |
-| 30111 | Argo Workflows                 |
+| Port        | Service                        |
+|-------------|--------------------------------|
+| 30100       | ArgoCD                         |
+| 30101       | Argo Rollouts (port-forward)   |
+| 30102       | Prometheus                     |
+| 30103       | Jaeger                         |
+| 30104       | GCP API Mock (outside cluster) |
+| 30105       | Ollama                         |
+| 30106       | OpenTelemetry Collector (gRPC) |
+| 30107       | OpenTelemetry Collector (HTTP) |
+| 30108       | Qdrant (HTTP)                  |
+| 30109       | Qdrant (gRPC)                  |
+| 30110       | Gitea                          |
+| 30111       | Argo Workflows                 |
+| 30200–30204 | Custom app (reserved)          |
 
 Notes:
 - 30101 is skipped in Kind config — Argo Rollouts dashboard uses port-forward instead

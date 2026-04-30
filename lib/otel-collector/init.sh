@@ -6,11 +6,13 @@ SCRIPT_DIR="$(dirname "$(realpath "${BASH_SOURCE[0]}")")"
 help() {
   echo "Usage: $0 [OPTIONS]"
   echo "Options:"
-  echo " --help             Display this help message"
-  echo " --version <ver>    otel/opentelemetry-collector-contrib image tag (required)"
+  echo " --help                Display this help message"
+  echo " --version <ver>       otel/opentelemetry-collector-contrib image tag (required)"
+  echo " --timeout <duration>  Timeout for wait operations (default: 2m)"
 }
 
 version=""
+timeout="2m"
 
 # Parse flags
 while [[ $# -gt 0 ]]; do
@@ -25,6 +27,14 @@ while [[ $# -gt 0 ]]; do
         exit 1
       fi
       version="$2"
+      shift 2
+      ;;
+    --timeout)
+      if [[ -z "${2-}" ]]; then
+        echo "Error: --timeout requires a value" >&2
+        exit 1
+      fi
+      timeout="$2"
       shift 2
       ;;
     *)
@@ -49,6 +59,6 @@ sed "s|otel/opentelemetry-collector-contrib:.*|otel/opentelemetry-collector-cont
   "$SCRIPT_DIR/manifests/deployment.yaml" | kubectl apply -n otel -f -
 
 echo "✨ Waiting for OTEL Collector to be ready"
-kubectl rollout status deployment/collector -n otel --timeout=120s
+kubectl rollout status deployment/collector -n otel --timeout="$timeout"
 
 echo "✅ OTEL Collector is ready"

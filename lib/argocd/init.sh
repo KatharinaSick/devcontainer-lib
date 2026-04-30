@@ -6,14 +6,16 @@ SCRIPT_DIR="$(dirname "$(realpath "${BASH_SOURCE[0]}")")"
 help() {
   echo "Usage: $0 [OPTIONS]"
   echo "Options:"
-  echo " --help             Display this help message"
-  echo " --read-only        Disables the ArgoCD admin user and only provides read-only access"
-  echo " --version <ver>    Argo CD version to install (required)"
+  echo " --help                Display this help message"
+  echo " --read-only           Disables the ArgoCD admin user and only provides read-only access"
+  echo " --version <ver>       Argo CD version to install (required)"
+  echo " --timeout <duration>  Timeout for wait operations (default: 5m)"
 }
 
 # Parse flags
 read_only=false
 version=""
+timeout="5m"
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
@@ -31,6 +33,14 @@ while [[ $# -gt 0 ]]; do
         exit 1
       fi
       version="$2"
+      shift 2
+      ;;
+    --timeout)
+      if [[ -z "${2-}" ]]; then
+        echo "Error: --timeout requires a value" >&2
+        exit 1
+      fi
+      timeout="$2"
       shift 2
       ;;
     *)
@@ -63,7 +73,7 @@ sudo install -m 555 "argocd-linux-${ARCH}" /usr/local/bin/argocd
 rm "argocd-linux-${ARCH}"
 
 echo "✨ Waiting for Argo CD server to be ready"
-kubectl rollout status deployment/argocd-server -n argocd --timeout=300s
+kubectl rollout status deployment/argocd-server -n argocd --timeout="$timeout"
 sleep 3 # Give Argo CD a moment to be ready after restart
 
 
@@ -82,7 +92,7 @@ if [ "$read_only" = true ]; then
 
   echo "✨ Restarting Argo CD server"
   kubectl -n argocd rollout restart deployment/argocd-server
-  kubectl rollout status deployment/argocd-server -n argocd --timeout=300s
+  kubectl rollout status deployment/argocd-server -n argocd --timeout="$timeout"
   sleep 3 # Give Argo CD a moment to be ready after restart
 
   echo "✨ Logging in as readonly user"

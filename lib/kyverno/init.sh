@@ -7,11 +7,13 @@ help() {
   echo " --help                 Display this help message"
   echo " --version <ver>        Kyverno Helm chart version to install (required)"
   echo " --cli-version <ver>    Kyverno CLI version to install (required)"
+  echo " --timeout <duration>   Timeout for wait operations (default: 5m)"
 }
 
 # Parse flags
 version=""
 cli_version=""
+timeout="5m"
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
@@ -33,6 +35,14 @@ while [[ $# -gt 0 ]]; do
         exit 1
       fi
       cli_version="$2"
+      shift 2
+      ;;
+    --timeout)
+      if [[ -z "${2-}" ]]; then
+        echo "Error: --timeout requires a value" >&2
+        exit 1
+      fi
+      timeout="$2"
       shift 2
       ;;
     *)
@@ -61,10 +71,11 @@ helm install kyverno kyverno/kyverno \
   --version "$version" \
   --set admissionController.replicas=1 \
   --set features.policyExceptions.enabled=true \
-  --wait
+  --wait \
+  --timeout "$timeout"
 
 echo "✨ Waiting for Kyverno admission controller to be ready"
-kubectl rollout status deployment/kyverno-admission-controller -n kyverno --timeout=300s
+kubectl rollout status deployment/kyverno-admission-controller -n kyverno --timeout="$timeout"
 
 echo "✨ Installing Kyverno CLI"
 # shellcheck disable=SC1091

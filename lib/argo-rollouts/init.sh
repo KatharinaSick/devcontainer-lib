@@ -4,12 +4,14 @@ set -e
 help() {
   echo "Usage: $0 [OPTIONS]"
   echo "Options:"
-  echo " --help             Display this help message"
-  echo " --version <ver>    Argo Rollouts version to install (required)"
+  echo " --help                Display this help message"
+  echo " --version <ver>       Argo Rollouts version to install (required)"
+  echo " --timeout <duration>  Timeout for wait operations (default: 5m)"
 }
 
 # Parse flags
 version=""
+timeout="5m"
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
@@ -23,6 +25,14 @@ while [[ $# -gt 0 ]]; do
         exit 1
       fi
       version="$2"
+      shift 2
+      ;;
+    --timeout)
+      if [[ -z "${2-}" ]]; then
+        echo "Error: --timeout requires a value" >&2
+        exit 1
+      fi
+      timeout="$2"
       shift 2
       ;;
     *)
@@ -42,7 +52,7 @@ kubectl create namespace argo-rollouts
 kubectl apply -n argo-rollouts -f "https://github.com/argoproj/argo-rollouts/releases/download/${version}/install.yaml"
 
 echo "✨ Waiting for Argo Rollouts controller to be ready"
-kubectl rollout status deployment/argo-rollouts -n argo-rollouts --timeout=300s
+kubectl rollout status deployment/argo-rollouts -n argo-rollouts --timeout="$timeout"
 
 echo "✨ Installing Argo Rollouts Kubectl plugin"
 # shellcheck disable=SC1091

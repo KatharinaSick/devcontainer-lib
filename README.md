@@ -61,6 +61,17 @@ Releases follow [Conventional Commits](https://www.conventionalcommits.org/). Pi
 tag in your `post-create.sh` to ensure your environment stays reproducible when this library
 is updated.
 
+## Common Options
+
+All scripts that wait for resources to become ready accept a `--timeout` flag:
+
+```bash
+"$LIB_DIR/argocd/init.sh" --version v2.14.0 --timeout 10m
+```
+
+The default varies per script (most use `5m`, Ollama uses `10m`, OTel Collector uses `2m`).
+Pass any [Go duration string](https://pkg.go.dev/time#ParseDuration) (e.g. `30s`, `5m`, `1h`).
+
 ## Adding a New Script
 
 Each tool lives in its own directory and follows the same interface:

@@ -12,6 +12,7 @@ help() {
   echo " --kubens-version <ver>    kubens version to install (required)"
   echo " --k9s-version <ver>       k9s version to install (required)"
   echo " --helm-version <ver>      Helm version to install (required)"
+  echo " --timeout <duration>      Timeout for wait operations (default: 5m)"
 }
 
 # Parse flags
@@ -20,6 +21,7 @@ kubectl_version=""
 kubens_version=""
 k9s_version=""
 helm_version=""
+timeout="5m"
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
@@ -65,6 +67,14 @@ while [[ $# -gt 0 ]]; do
         exit 1
       fi
       helm_version="$2"
+      shift 2
+      ;;
+    --timeout)
+      if [[ -z "${2-}" ]]; then
+        echo "Error: --timeout requires a value" >&2
+        exit 1
+      fi
+      timeout="$2"
       shift 2
       ;;
     *)
@@ -120,7 +130,7 @@ sudo mv "linux-${ARCH}/helm" /usr/local/bin/helm
 rm -rf "linux-${ARCH}" "helm-${helm_version}-linux-${ARCH}.tar.gz"
 
 echo "✨ Starting Kind cluster"
-kind create cluster --config "$SCRIPT_DIR/config.yaml" --wait 300s
+kind create cluster --config "$SCRIPT_DIR/config.yaml" --wait "$timeout"
 kubectl cluster-info
 
 echo "✅ Kubernetes cluster is ready"

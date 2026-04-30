@@ -6,12 +6,14 @@ SCRIPT_DIR="$(dirname "$(realpath "${BASH_SOURCE[0]}")")"
 help() {
   echo "Usage: $0 [OPTIONS]"
   echo "Options:"
-  echo " --help             Display this help message"
-  echo " --version <ver>    Jaeger Helm chart version to install (required)"
+  echo " --help                Display this help message"
+  echo " --version <ver>       Jaeger Helm chart version to install (required)"
+  echo " --timeout <duration>  Timeout for wait operations (default: 5m)"
 }
 
 # Parse flags
 version=""
+timeout="5m"
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
@@ -25,6 +27,14 @@ while [[ $# -gt 0 ]]; do
         exit 1
       fi
       version="$2"
+      shift 2
+      ;;
+    --timeout)
+      if [[ -z "${2-}" ]]; then
+        echo "Error: --timeout requires a value" >&2
+        exit 1
+      fi
+      timeout="$2"
       shift 2
       ;;
     *)
@@ -54,7 +64,7 @@ helm install jaeger jaegertracing/jaeger \
   --namespace jaeger \
   --values "$SCRIPT_DIR/values.yaml" \
   --wait \
-  --timeout 5m
+  --timeout "$timeout"
 
 echo "✨ Deploy service"
 kubectl -n jaeger apply -f "$SCRIPT_DIR/manifests/service.yaml"

@@ -6,12 +6,14 @@ SCRIPT_DIR="$(dirname "$(realpath "${BASH_SOURCE[0]}")")"
 help() {
   echo "Usage: $0 [OPTIONS]"
   echo "Options:"
-  echo " --help             Display this help message"
-  echo " --version <ver>    Ollama Helm chart version to install (required)"
+  echo " --help                Display this help message"
+  echo " --version <ver>       Ollama Helm chart version to install (required)"
+  echo " --timeout <duration>  Timeout for wait operations (default: 10m)"
 }
 
 # Parse flags
 version=""
+timeout="10m"
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
@@ -25,6 +27,14 @@ while [[ $# -gt 0 ]]; do
         exit 1
       fi
       version="$2"
+      shift 2
+      ;;
+    --timeout)
+      if [[ -z "${2-}" ]]; then
+        echo "Error: --timeout requires a value" >&2
+        exit 1
+      fi
+      timeout="$2"
       shift 2
       ;;
     *)
@@ -51,9 +61,9 @@ helm install ollama otwld/ollama \
   --namespace ollama --create-namespace \
   --values "$SCRIPT_DIR/values.yaml" \
   --wait \
-  --timeout 10m
+  --timeout "$timeout"
 
 echo "✨ Waiting for Ollama to be ready"
-kubectl wait --for=condition=ready pod -l app.kubernetes.io/name=ollama -n ollama --timeout=300s
+kubectl wait --for=condition=ready pod -l app.kubernetes.io/name=ollama -n ollama --timeout="$timeout"
 
 echo "✅ Ollama is ready with TinyLlama model"

@@ -1,11 +1,13 @@
 gitea:
   admin:
-    username: gitea
-    password: gitea
+    username: admin
+    password: a-super-secure-password
     email: gitea@local
   config:
     database:
       DB_TYPE: sqlite3
+    webhook:
+      ALLOWED_HOST_LIST: "*"
 
 service:
   http:

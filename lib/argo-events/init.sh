@@ -8,11 +8,13 @@ help() {
   echo "Options:"
   echo " --help                Display this help message"
   echo " --version <ver>       Argo Events Helm chart version to install (required)"
+  echo " --no-wait             Skip waiting for Argo Events to be ready"
   echo " --timeout <duration>  Timeout for wait operations (default: 5m)"
 }
 
 # Parse flags
 version=""
+no_wait=false
 timeout="5m"
 
 while [[ $# -gt 0 ]]; do
@@ -28,6 +30,10 @@ while [[ $# -gt 0 ]]; do
       fi
       version="$2"
       shift 2
+      ;;
+    --no-wait)
+      no_wait=true
+      shift
       ;;
     --timeout)
       if [[ -z "${2-}" ]]; then
@@ -57,14 +63,19 @@ echo "✨ Creating argo-events namespace"
 kubectl create namespace argo-events
 
 echo "✨ Installing Argo Events via Helm"
-helm install argo-events argo/argo-events \
-  --version "$version" \
-  --namespace argo-events \
-  --values "$SCRIPT_DIR/values.yaml" \
-  --wait \
-  --timeout "$timeout"
+helm_args=(
+  --version "$version"
+  --namespace argo-events
+  --values "$SCRIPT_DIR/values.yaml"
+)
+if [[ "$no_wait" == false ]]; then
+  helm_args+=(--wait --timeout "$timeout")
+fi
+helm install argo-events argo/argo-events "${helm_args[@]}"
 
-echo "✨ Installing default EventBus (NATS)"
-kubectl apply -f "$SCRIPT_DIR/manifests/eventbus.yaml"
+if [[ "$no_wait" == false ]]; then
+  echo "✨ Installing default EventBus (NATS)"
+  kubectl apply -f "$SCRIPT_DIR/manifests/eventbus.yaml"
+fi
 
 echo "✅ Argo Events is ready"

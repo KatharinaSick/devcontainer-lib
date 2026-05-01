@@ -8,11 +8,13 @@ help() {
   echo "Options:"
   echo " --help                Display this help message"
   echo " --version <ver>       kube-state-metrics Helm chart version to install (required)"
+  echo " --no-wait             Skip waiting for kube-state-metrics to be ready"
   echo " --timeout <duration>  Timeout for wait operations (default: 5m)"
 }
 
 # Parse flags
 version=""
+no_wait=false
 timeout="5m"
 
 while [[ $# -gt 0 ]]; do
@@ -28,6 +30,10 @@ while [[ $# -gt 0 ]]; do
       fi
       version="$2"
       shift 2
+      ;;
+    --no-wait)
+      no_wait=true
+      shift
       ;;
     --timeout)
       if [[ -z "${2-}" ]]; then
@@ -57,11 +63,14 @@ echo "✨ Creating kube-state-metrics namespace"
 kubectl create namespace kube-state-metrics
 
 echo "✨ Installing kube-state-metrics via Helm"
-helm install kube-state-metrics prometheus-community/kube-state-metrics \
-  --version "$version" \
-  --namespace kube-state-metrics \
-  --values "$SCRIPT_DIR/values.yaml" \
-  --wait \
-  --timeout "$timeout"
+helm_args=(
+  --version "$version"
+  --namespace kube-state-metrics
+  --values "$SCRIPT_DIR/values.yaml"
+)
+if [[ "$no_wait" == false ]]; then
+  helm_args+=(--wait --timeout "$timeout")
+fi
+helm install kube-state-metrics prometheus-community/kube-state-metrics "${helm_args[@]}"
 
 echo "✅ kube-state-metrics is ready"

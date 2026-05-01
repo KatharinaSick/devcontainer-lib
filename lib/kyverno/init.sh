@@ -7,12 +7,14 @@ help() {
   echo " --help                 Display this help message"
   echo " --version <ver>        Kyverno Helm chart version to install (required)"
   echo " --cli-version <ver>    Kyverno CLI version to install (required)"
+  echo " --no-wait              Skip waiting for Kyverno to be ready"
   echo " --timeout <duration>   Timeout for wait operations (default: 5m)"
 }
 
 # Parse flags
 version=""
 cli_version=""
+no_wait=false
 timeout="5m"
 
 while [[ $# -gt 0 ]]; do
@@ -36,6 +38,10 @@ while [[ $# -gt 0 ]]; do
       fi
       cli_version="$2"
       shift 2
+      ;;
+    --no-wait)
+      no_wait=true
+      shift
       ;;
     --timeout)
       if [[ -z "${2-}" ]]; then
@@ -65,17 +71,22 @@ fi
 echo "✨ Installing Kyverno"
 helm repo add kyverno https://kyverno.github.io/kyverno/
 helm repo update
-helm install kyverno kyverno/kyverno \
-  --namespace kyverno \
-  --create-namespace \
-  --version "$version" \
-  --set admissionController.replicas=1 \
-  --set features.policyExceptions.enabled=true \
-  --wait \
-  --timeout "$timeout"
+helm_args=(
+  --namespace kyverno
+  --create-namespace
+  --version "$version"
+  --set admissionController.replicas=1
+  --set features.policyExceptions.enabled=true
+)
+if [[ "$no_wait" == false ]]; then
+  helm_args+=(--wait --timeout "$timeout")
+fi
+helm install kyverno kyverno/kyverno "${helm_args[@]}"
 
-echo "✨ Waiting for Kyverno admission controller to be ready"
-kubectl rollout status deployment/kyverno-admission-controller -n kyverno --timeout="$timeout"
+if [[ "$no_wait" == false ]]; then
+  echo "✨ Waiting for Kyverno admission controller to be ready"
+  kubectl rollout status deployment/kyverno-admission-controller -n kyverno --timeout="$timeout"
+fi
 
 echo "✨ Installing Kyverno CLI"
 # shellcheck disable=SC1091

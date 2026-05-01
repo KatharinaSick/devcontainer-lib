@@ -8,10 +8,12 @@ help() {
   echo "Options:"
   echo " --help                Display this help message"
   echo " --version <ver>       otel/opentelemetry-collector-contrib image tag (required)"
+  echo " --no-wait             Skip waiting for OTEL Collector to be ready"
   echo " --timeout <duration>  Timeout for wait operations (default: 2m)"
 }
 
 version=""
+no_wait=false
 timeout="2m"
 
 # Parse flags
@@ -28,6 +30,10 @@ while [[ $# -gt 0 ]]; do
       fi
       version="$2"
       shift 2
+      ;;
+    --no-wait)
+      no_wait=true
+      shift
       ;;
     --timeout)
       if [[ -z "${2-}" ]]; then
@@ -58,7 +64,9 @@ kubectl apply -n otel -f "$SCRIPT_DIR/manifests/service.yaml"
 sed "s|otel/opentelemetry-collector-contrib:.*|otel/opentelemetry-collector-contrib:${version}|" \
   "$SCRIPT_DIR/manifests/deployment.yaml" | kubectl apply -n otel -f -
 
-echo "✨ Waiting for OTEL Collector to be ready"
-kubectl rollout status deployment/collector -n otel --timeout="$timeout"
+if [[ "$no_wait" == false ]]; then
+  echo "✨ Waiting for OTEL Collector to be ready"
+  kubectl rollout status deployment/collector -n otel --timeout="$timeout"
+fi
 
 echo "✅ OTEL Collector is ready"

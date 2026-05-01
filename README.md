@@ -63,7 +63,34 @@ is updated.
 
 ## Common Options
 
-All scripts that wait for resources to become ready accept a `--timeout` flag:
+All scripts that deploy Kubernetes resources accept `--no-wait` and `--timeout`.
+
+### `--no-wait` and `wait.sh`
+
+By default each script blocks until its workload is ready. Pass `--no-wait` to return
+immediately after submitting the manifests, then use `wait.sh` at the end to wait for
+everything at once — useful when installing multiple tools in parallel:
+
+```bash
+"$LIB_DIR/argo-workflows/init.sh" --version v0.45.0 --no-wait
+"$LIB_DIR/gitea/init.sh"          --version v10.6.0  --no-wait
+"$LIB_DIR/prometheus/init.sh"     --version v27.5.1  --no-wait
+# ... other installs ...
+
+"$LIB_DIR/wait.sh" argo-workflows gitea prometheus
+```
+
+`wait.sh` accepts an optional `--timeout` (default `5m`) and any number of tool names.
+Available tools: `argo-events`, `argo-rollouts`, `argo-workflows`, `gitea`, `jaeger`,
+`kube-state-metrics`, `kyverno`, `ollama`, `otel-collector`, `prometheus`,
+`prometheus-operator`, `qdrant`.
+
+> **Note:** `argo-events` is special — when `--no-wait` is used, the default EventBus
+> manifest is also deferred and applied by `wait.sh` once the controller is ready.
+
+### `--timeout`
+
+All scripts that wait for resources accept a `--timeout` flag:
 
 ```bash
 "$LIB_DIR/argocd/init.sh" --version v2.14.0 --timeout 10m

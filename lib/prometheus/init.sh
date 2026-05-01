@@ -9,12 +9,14 @@ help() {
   echo " --help                Display this help message"
   echo " --operator            Install Prometheus Operator instead of standalone Prometheus"
   echo " --version <ver>       Helm chart version to install (required)"
+  echo " --no-wait             Skip waiting for Prometheus to be ready"
   echo " --timeout <duration>  Timeout for wait operations (default: 5m)"
 }
 
 # Parse flags
 use_operator=false
 version=""
+no_wait=false
 timeout="5m"
 
 while [[ $# -gt 0 ]]; do
@@ -25,6 +27,10 @@ while [[ $# -gt 0 ]]; do
       ;;
     --operator)
       use_operator=true
+      shift
+      ;;
+    --no-wait)
+      no_wait=true
       shift
       ;;
     --version)
@@ -64,25 +70,27 @@ helm repo update
 echo "✨ Creating prometheus namespace"
 kubectl create namespace prometheus
 
+helm_args=(
+  --version "$version"
+  --namespace prometheus
+)
+if [[ "$no_wait" == false ]]; then
+  helm_args+=(--wait --timeout "$timeout")
+fi
+
 if [ "$use_operator" = true ]; then
   echo "✨ Installing Prometheus Operator (kube-prometheus-stack)"
   helm install prometheus prometheus-community/kube-prometheus-stack \
-    --version "$version" \
-    --namespace prometheus \
-    --values "$SCRIPT_DIR/operator-values.yaml" \
-    --wait \
-    --timeout "$timeout"
+    "${helm_args[@]}" \
+    --values "$SCRIPT_DIR/operator-values.yaml"
 
   echo "✅ Prometheus Operator is ready"
   echo "💡 Use PrometheusRule CRDs to define recording and alerting rules"
 else
   echo "✨ Installing standalone Prometheus"
   helm install prometheus prometheus-community/prometheus \
-    --version "$version" \
-    --namespace prometheus \
-    --values "$SCRIPT_DIR/standalone-values.yaml" \
-    --wait \
-    --timeout "$timeout"
+    "${helm_args[@]}" \
+    --values "$SCRIPT_DIR/standalone-values.yaml"
 
   echo "✅ Prometheus is ready"
 fi

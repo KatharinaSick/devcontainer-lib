@@ -61,7 +61,7 @@ for tool in "${tools[@]}"; do
       ;;
     gitea)
       echo "✨ Waiting for Gitea"
-      kubectl rollout status statefulset/gitea -n gitea --timeout="$timeout"
+      kubectl rollout status deployment/gitea -n gitea --timeout="$timeout"
       ;;
     jaeger)
       echo "✨ Waiting for Jaeger"

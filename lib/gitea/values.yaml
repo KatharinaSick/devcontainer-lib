@@ -6,6 +6,8 @@ gitea:
   config:
     database:
       DB_TYPE: sqlite3
+    server:
+      ROOT_URL: http://gitea-http.gitea.svc.cluster.local:3000
     webhook:
       ALLOWED_HOST_LIST: "*"
 

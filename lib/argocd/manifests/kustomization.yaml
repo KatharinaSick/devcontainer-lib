@@ -13,6 +13,7 @@ patches:
   - path: overlays/argocd-server-service.yaml
   - path: overlays/argocd-cm.yaml
   - path: overlays/argocd-rbac-cm.yaml
+  # INSECURE_PATCH_START — stripped by init.sh when --tls is set
   - patch: |-
       - op: add
         path: /spec/template/spec/containers/0/args/-
@@ -22,3 +23,4 @@ patches:
       version: v1
       kind: Deployment
       name: argocd-server
+  # INSECURE_PATCH_END

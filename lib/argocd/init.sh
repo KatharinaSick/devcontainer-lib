@@ -8,12 +8,14 @@ help() {
   echo "Options:"
   echo " --help                Display this help message"
   echo " --read-only           Disables the ArgoCD admin user and only provides read-only access"
+  echo " --tls                 Serve the Argo CD UI/API over HTTPS with a self-signed cert"
   echo " --version <ver>       Argo CD version to install (required)"
   echo " --timeout <duration>  Timeout for wait operations (default: 5m)"
 }
 
 # Parse flags
 read_only=false
+tls=false
 version=""
 timeout="5m"
 
@@ -25,6 +27,10 @@ while [[ $# -gt 0 ]]; do
       ;;
     --read-only)
       read_only=true
+      shift
+      ;;
+    --tls)
+      tls=true
       shift
       ;;
     --version)
@@ -63,6 +69,9 @@ trap 'rm -rf "${manifests_tmp}"' EXIT
 cp -r "$SCRIPT_DIR/manifests/." "${manifests_tmp}/"
 sed -i "s|argoproj/argo-cd/[^/]*/manifests/install.yaml|argoproj/argo-cd/${version}/manifests/install.yaml|" \
   "${manifests_tmp}/kustomization.yaml"
+if [ "$tls" = true ]; then
+  sed -i '/# INSECURE_PATCH_START/,/# INSECURE_PATCH_END/d' "${manifests_tmp}/kustomization.yaml"
+fi
 kubectl apply -k "${manifests_tmp}" --server-side -n argocd
 
 echo "✨ Installing Argo CD CLI"
@@ -76,10 +85,17 @@ echo "✨ Waiting for Argo CD server to be ready"
 kubectl rollout status deployment/argocd-server -n argocd --timeout="$timeout"
 sleep 3 # Give Argo CD a moment to be ready after restart
 
+# argocd CLI: --plaintext = HTTP, --insecure = HTTPS with self-signed cert
+if [ "$tls" = true ]; then
+  argocd_tls_flag="--insecure"
+else
+  argocd_tls_flag="--plaintext"
+fi
+
 echo "✨ Setting password for user admin"
 initial_admin_password=$(kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath="{.data.password}" | base64 -d)
 kubectl -n argocd delete secret argocd-initial-admin-secret
-argocd login localhost:30100 --username admin --password "$initial_admin_password" --plaintext
+argocd login localhost:30100 --username admin --password "$initial_admin_password" "$argocd_tls_flag"
 
 if [ "$read_only" = true ]; then
   echo "✨ Setting password for user readonly"
@@ -97,13 +113,13 @@ if [ "$read_only" = true ]; then
   sleep 3 # Give Argo CD a moment to be ready after restart
 
   echo "✨ Logging in as readonly user"
-  argocd login localhost:30100 --username readonly --password a-super-secure-password --plaintext
+  argocd login localhost:30100 --username readonly --password a-super-secure-password "$argocd_tls_flag"
 else
   argocd account update-password \
       --account admin \
       --current-password "$initial_admin_password" \
       --new-password a-super-secure-password
-  argocd login localhost:30100 --username admin --password a-super-secure-password --plaintext
+  argocd login localhost:30100 --username admin --password a-super-secure-password "$argocd_tls_flag"
 fi
 
 echo "✅ Argo CD is ready"
